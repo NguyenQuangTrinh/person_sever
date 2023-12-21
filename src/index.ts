@@ -5,6 +5,7 @@ import { userController } from "../controllers/user.controller";
 import jwt from "@elysiajs/jwt";
 import { todoController } from "../controllers/todo.controller";
 import { webSocketController } from "../controllers/websocket";
+import { CollectionController } from "../controllers/collection.controller";
 
 const app = new Elysia();
 
@@ -18,7 +19,8 @@ app.use(swagger({
     },
     tags: [
       { name: "User" },
-      {name:  "Todo"}
+      {name: "Todo"},
+      {name: "Collection"}
     ]
   }
 })
@@ -27,6 +29,7 @@ app.use(swagger({
 
 app.use(userController)
 app.use(todoController)
+app.use(CollectionController)
 app.use(webSocketController);
 
 // app.group("v1/user", app => app

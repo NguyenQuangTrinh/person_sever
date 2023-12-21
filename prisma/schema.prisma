@@ -34,3 +34,13 @@ enum Tab {
   WORK
   STUDY
 }
+
+model Collection{
+  id String @id @default(cuid()) @map("_id")
+  idUser String @unique
+  name String @unique
+  image String[]
+  category String 
+  CreateAt DateTime @default(now())
+  UpdateAt DateTime @updatedAt
+}
