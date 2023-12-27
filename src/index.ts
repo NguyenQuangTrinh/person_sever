@@ -1,15 +1,13 @@
 import { Elysia, t } from "elysia";
 import { swagger } from '@elysiajs/swagger'
-import { PrismaClient } from '@prisma/client'
 import { userController } from "../controllers/user.controller";
-import jwt from "@elysiajs/jwt";
 import { todoController } from "../controllers/todo.controller";
 import { webSocketController } from "../controllers/websocket";
 import { CollectionController } from "../controllers/collection.controller";
+import { cors } from "@elysiajs/cors";
 
 const app = new Elysia();
 
-const db = new PrismaClient();
 
 app.use(swagger({
   documentation: {
@@ -19,12 +17,14 @@ app.use(swagger({
     },
     tags: [
       { name: "User" },
-      {name: "Todo"},
-      {name: "Collection"}
+      { name: "Todo" },
+      { name: "Collection" }
     ]
   }
 })
-)
+).use(cors({
+  allowedHeaders: "*"
+}))
 
 
 app.use(userController)
@@ -95,14 +95,8 @@ app.use(webSocketController);
 //   })
 // )
 
-app.post('/', ({ body, set }) => {
-  const signed = body
-  console.log(signed);
-  if (signed)
-    return 'Welcome back'
-
-  set.status = 403
-  return 'Invalid username or password'
+app.get('/', () => {
+  return "welcome to my app"
 })
 
 

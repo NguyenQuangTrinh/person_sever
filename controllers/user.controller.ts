@@ -30,7 +30,8 @@ userController.group("v1/user", userController => userController
                 if (checkEmail.password === hashPassword(password)) {
                     const jwts = await jwt.sign({
                         email: checkEmail.email,
-                        name: checkEmail.name
+                        name: checkEmail.name,
+                        id: checkEmail.id
                     })
                     access_token.value = jwts
                     return {
@@ -94,6 +95,15 @@ userController.group("v1/user", userController => userController
             detail: { tags: ['User'] },
         },
     )
+    .get("/user", async ({headers, jwt}) => {
+        try {
+            const access_token = headers['authorization']
+            const profile = await jwt.verify(access_token?.split(" ")[1]);
+            return profile;
+        } catch (error) {
+            console.log(error);   
+        }
+    })
     .model({
         'user.sign': t.Object({
             email: t.String(),

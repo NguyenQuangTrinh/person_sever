@@ -4,15 +4,21 @@ export const webSocketController = new Elysia();
 
 webSocketController
     .ws('/ws', {
-        body: t.Object({
-            message: t.String()
-        }),
-        message(ws, { message }) {
-            console.log(message)
-            ws.send({
-                message,
-                time: Date.now()
-            })
+        message(ws, message: any) {
+            if (message.type == "join") {
+                console.log(message)
+                ws.subscribe(message.data.idRoom).publish(message.data.idRoom, {
+                    message: `${message.idUser} has entered the room`,
+                    user: '[SYSTEM]',
+                    time: Date.now()
+                })
+                ws.send(message);
+            } else if (message.type == "message") {
+                ws.publish(message.data.idRoom, {
+                    message
+                })
+                ws.send({ message });
+            }
         }
     })
     .ws("ws/:room/:name", {
@@ -28,6 +34,7 @@ webSocketController
                 user: '[SYSTEM]',
                 time: Date.now()
             })
+            // console.log(ws);
         },
         message(ws, message) {
             const {
@@ -36,12 +43,16 @@ webSocketController
                 }
             } = ws
 
-            const a = ws.publish(room, {
+            ws.publish(room, {
                 message,
                 user: name,
                 time: Date.now()
             })
-            ws.send(message);
+            // ws.send({
+            //     message,
+            //     room: room,
+            //     name: name
+            // });
         },
         close(ws) {
             const {
