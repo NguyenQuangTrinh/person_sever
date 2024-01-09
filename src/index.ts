@@ -5,9 +5,28 @@ import { todoController } from "../controllers/todo.controller";
 import { webSocketController } from "../controllers/websocket";
 import { CollectionController } from "../controllers/collection.controller";
 import { cors } from "@elysiajs/cors";
+import { messagerController } from "../controllers/messager.controller";
 
 const app = new Elysia();
 
+import mongoose from "mongoose";
+
+const windowsIpAddress = '192.168.1.14'; // Replace with the actual IP address of Windows
+const port = '27017'; // Default MongoDB port
+
+// MongoDB connection string
+const connectionString = `mongodb://${windowsIpAddress}:${port}/elysia`;
+
+// Connect to MongoDB
+mongoose.connect(connectionString);
+
+mongoose.connection.on('connected', () => {
+  console.log('Connected to MongoDB on Windows from WSL');
+});
+
+mongoose.connection.on('error', (err) => {
+  console.error('Error connecting to MongoDB:', err);
+});
 
 app.use(swagger({
   documentation: {
@@ -31,69 +50,8 @@ app.use(userController)
 app.use(todoController)
 app.use(CollectionController)
 app.use(webSocketController);
+app.use(messagerController);
 
-// app.group("v1/user", app => app
-//   .get("/getAll", async () => {
-//     const user = await db.user.findMany();
-//     return user;
-//   }, { detail: { tags: ['User'] } })
-//   .model({
-//     'user.sign': t.Object({
-//       email: t.String(),
-//       hashpassword: t.String({
-//         minLength: 8
-//       }),
-//       name: t.String()
-//     })
-//   },
-//   )
-//   .post("/create", async (req) => {
-//     const { email, hashpassword, name }: any = req.body;
-//     const password = hashPassword(hashpassword);
-
-//     const user = await db.user.create({
-//       data: {
-//         email, password, name
-//       },
-//       select: {
-//         id: true,
-//         email: true
-//       }
-//     })
-
-//   },
-//     {
-//       body: 'user.sign',
-//       detail: { tags: ['User'] }
-//     }
-
-//   )
-//   .model(
-//     {
-//       'user.login': t.Object({
-//         email: t.String(),
-//         password: t.String()
-//       })
-//     }
-//   )
-//   .post('/login', (req) => {
-//     const {email, password} = req.body;
-//     const emailFind = db.user.findUnique({
-//       where: {email}
-//     })
-
-//     if(emailFind){
-
-//     }else{
-
-//     }
-
-
-//   },{
-//     body: 'user.login',
-//     detail: {tags: ['User']}
-//   })
-// )
 
 app.get('/', () => {
   return "welcome to my app"

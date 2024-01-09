@@ -10,24 +10,25 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User{
-  id String @id @default(cuid()) @map("_id")
-  email String @unique
-  password String @unique
-  name String
-  CreateAt DateTime @default(now())
-  UpdateAt DateTime @updatedAt
+model User {
+  id          String   @id @default(cuid()) @map("_id")
+  email       String   @unique
+  password    String   @unique
+  name        String
+  listfriends Json[]
+  CreateAt    DateTime @default(now())
+  UpdateAt    DateTime @updatedAt
 }
 
 model TodoList {
-  id String @id @default(cuid()) @map("_id")
-  idUser String @unique
-  title String @unique
-  description String 
-  completed Boolean @default(false)
-  tab Tab @default(STUDY)
-  CreateAt DateTime @default(now())
-  UpdateAt DateTime @updatedAt
+  id          String   @id @default(cuid()) @map("_id")
+  idUser      String   @unique
+  title       String   @unique
+  description String
+  completed   Boolean  @default(false)
+  tab         Tab      @default(STUDY)
+  CreateAt    DateTime @default(now())
+  UpdateAt    DateTime @updatedAt
 }
 
 enum Tab {
@@ -35,12 +36,28 @@ enum Tab {
   STUDY
 }
 
-model Collection{
-  id String @id @default(cuid()) @map("_id")
-  idUser String @unique
-  name String @unique
-  image String[]
-  category String 
+model Collection {
+  id       String   @id @default(cuid()) @map("_id")
+  idUser   String   @unique
+  name     String   @unique
+  image    String[]
+  category String
   CreateAt DateTime @default(now())
   UpdateAt DateTime @updatedAt
+}
+
+model TextMessager {
+  id         String   @id @default(cuid()) @map("_id")
+  content    String   @unique
+  userId     String   @unique
+  messager   Messager @relation(fields: [messagerId], references: [id])
+  messagerId String
+  createAt   DateTime @default(now())
+}
+
+model Messager {
+  id       String         @id @default(cuid()) @map("_id")
+  roomId   String         @unique
+  message  TextMessager[]
+  createAt DateTime       @default(now())
 }

@@ -2,9 +2,11 @@ import Elysia, { t } from "elysia";
 import UserService from "../service/user.service";
 import { hashPassword } from "../helpers";
 import jwt from "@elysiajs/jwt";
+import MessagerService from "../service/messager.service";
 
 export const userController = new Elysia();
 const userService = new UserService();
+
 
 userController.group("v1/user", userController => userController
     .use(jwt({
@@ -12,6 +14,26 @@ userController.group("v1/user", userController => userController
         secret: 'kunikuzushi',
         exp: '7d'
     }))
+    .model({
+        'user.sign': t.Object({
+            email: t.String(),
+            password: t.String({
+                minLength: 8
+            }),
+            name: t.String()
+        })
+    },
+    )
+    .post("/create", async (req) => {
+        const { email, password, name }: any = req.body;
+        return await userService.createUser(email, password, name)
+    },
+        {
+            body: 'user.sign',
+            detail: { tags: ['User'] }
+        }
+
+    )
     .model(
         {
             'user.login': t.Object({
@@ -20,7 +42,7 @@ userController.group("v1/user", userController => userController
             })
         }
     )
-    .post('/login', async ({ jwt, set, body, cookie: { access_token } }) => {
+    .post('/login', async ({ jwt, set, body, cookie: { access_token } }: any) => {
         const { email, password } = body;
 
         try {
@@ -58,14 +80,14 @@ userController.group("v1/user", userController => userController
         body: 'user.login',
         detail: { tags: ['User'] }
     })
-    .onBeforeHandle(async ({ set, jwt, headers }) => {
+    .onBeforeHandle(async ({ set, jwt, headers }: any) => {
         try {
             const access_token = headers['authorization']
             if (access_token != null) {
                 const profile = await jwt.verify(access_token.split(" ")[1]);
                 if (profile) {
                     set.status = 200
-                    return profile
+                    return
                 } else {
                     set.status = 401;
                     return {
@@ -82,6 +104,11 @@ userController.group("v1/user", userController => userController
             return e;
         }
     })
+    .post("/addFriend", async ({body}) => {
+        const {id, userId}: any = body;
+       
+        return await userService.addFriend(id, userId)
+    })
     .get("/getAll", async () => {
         try {
             const user = await userService.getAllUser();
@@ -89,40 +116,26 @@ userController.group("v1/user", userController => userController
         } catch (e) {
             return e;
         }
-
     },
         {
             detail: { tags: ['User'] },
         },
     )
-    .get("/user", async ({headers, jwt}) => {
+    .get("/userByid/:id", async ({params}) => {
+        try {
+            const user = await userService.getUserById(params.id)
+            return user;
+        } catch (error) {
+            return error;
+        }
+    })
+    .get("/user", async ({headers, jwt}: any) => {
         try {
             const access_token = headers['authorization']
             const profile = await jwt.verify(access_token?.split(" ")[1]);
-            return profile;
+            return userService.getUserById(profile.id);
         } catch (error) {
             console.log(error);   
         }
     })
-    .model({
-        'user.sign': t.Object({
-            email: t.String(),
-            password: t.String({
-                minLength: 8
-            }),
-            name: t.String()
-        })
-    },
-    )
-    .post("/create", async (req) => {
-        const { email, password, name }: any = req.body;
-        return await userService.createUser(email, password, name)
-    },
-        {
-            body: 'user.sign',
-            detail: { tags: ['User'] }
-        }
-
-    )
-
 )
